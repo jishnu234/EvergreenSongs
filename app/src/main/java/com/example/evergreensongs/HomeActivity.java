@@ -15,8 +15,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -24,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.SeekBar;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -36,6 +41,7 @@ public class HomeActivity extends AppCompatActivity {
     ArrayList<Integer> music;
     MediaPlayer mediaPlayer;
     int currentPosition;
+//    private SeekBar seekBar;
 
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
@@ -58,14 +64,31 @@ public class HomeActivity extends AppCompatActivity {
         play_btn = (ImageView) findViewById(R.id.play_button);
         nxt_btn = (ImageView) findViewById(R.id.nxt_button);
         bck_btn = (ImageView) findViewById(R.id.bck_button);
+//      seekBar=(SeekBar) findViewById(R.id.seekbar);
+
+        AudioManager manager= (AudioManager) getSystemService(AUDIO_SERVICE);
+
+        if (manager != null) {
+            manager.setStreamVolume(AudioManager.STREAM_MUSIC,manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),0);
+        }
 
         musicName.add("Ambadi_Payyukal");
         musicName.add("Maranittum_Enthino");
         musicName.add("Pranaya_Saugandikam");
-
         musicName.add("viral_thottal");
         musicName.add("ennum_ninne_poojikam");
         musicName.add("dooreyoru_tharam");
+        musicName.add("vennila_chandhana_kinnam");
+        musicName.add("ethrayoo_janmamayi");
+        musicName.add("vennila_kombile_rapadi");
+        musicName.add("nadodi_poonthinkal");
+        musicName.add("onnu_thodanullil");
+        musicName.add("kanumpol_parayamo");
+        musicName.add("mele_vinninmutatharoo");
+        musicName.add("kannil_kannil_minnum");
+        musicName.add("aroral_pularmazhayil");
+        musicName.add("swayam_vara_chandrikee");
+        musicName.add("padii_thodiyilethoo");
 
         music.add(R.raw.ambadi_payyukal);
         music.add(R.raw.maranittum_enthino);
@@ -73,9 +96,41 @@ public class HomeActivity extends AppCompatActivity {
         music.add(R.raw.viral_thottal);
         music.add(R.raw.ennum_ninne_poojikam);
         music.add(R.raw.dooreyoru_tharam);
+        music.add(R.raw.vennila_chandhana_kinnam);
+        music.add(R.raw.ethrayoo_janmamayi);
+        music.add(R.raw.vennila_kombile_rapadi);
+        music.add(R.raw.nadodi_poonthinkal);
+        music.add(R.raw.onnu_thodanullil);
+        music.add(R.raw.kanumpol_parayamo);
+        music.add(R.raw.mele_vinninmutatharoo);
+        music.add(R.raw.kannil_kannil_minnum);
+        music.add(R.raw.aroral_pularmazhayil);
+        music.add(R.raw.swayam_vara_chandrikee);
+        music.add(R.raw.padii_thodiyilethoo);
 
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, musicName);
         listView.setAdapter(arrayAdapter);
+
+//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            @Override
+//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//
+//                if(mediaPlayer!=null && fromUser)
+//                {
+//                    mediaPlayer.seekTo(progress*1000);
+//                }
+//            }
+//
+//            @Override
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//
+//            }
+//
+//            @Override
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//
+//            }
+//        });
 
         if(savedInstanceState==null) {
             mediaPlayer = MediaPlayer.create(this, music.get(currentPosition));
@@ -90,11 +145,14 @@ public class HomeActivity extends AppCompatActivity {
                 currentPosition = position;
                 changePrefValue(currentPosition);
 
+
                 if (mediaPlayer == null) {
                     mediaPlayer = MediaPlayer.create(HomeActivity.this, music.get(position));
-                    mediaPlayer.setVolume(100, 100);
+//                    seekBar.setVisibility(View.VISIBLE);
+//                    seekBar.setProgress(0);
                     mediaPlayer.start();
                     play_btn.setImageResource(R.drawable.pause_icon);
+//                    gotoSeek();
                     musicCompleted();
                 } else {
 
@@ -126,7 +184,6 @@ public class HomeActivity extends AppCompatActivity {
 
                 if (mediaPlayer == null) {
                     mediaPlayer = MediaPlayer.create(HomeActivity.this, music.get(currentPosition));
-                    mediaPlayer.setVolume(100, 100);
                     mediaPlayer.start();
                     play_btn.setImageResource(R.drawable.pause_icon);
                     musicCompleted();
@@ -205,6 +262,58 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
+
+        PhoneStateListener phoneStateListener=new PhoneStateListener()
+        {
+            @Override
+            public void onCallStateChanged(int state, String phoneNumber) {
+
+                if(state== TelephonyManager.CALL_STATE_RINGING)
+                {
+                    if(mediaPlayer!=null)
+                    {
+                        if(mediaPlayer.isPlaying())
+                        {
+                            mediaPlayer.pause();
+                            play_btn.setImageResource(R.drawable.play_icon);
+
+                        }
+                    }
+                }
+                else if(state==TelephonyManager.CALL_STATE_IDLE)
+                {
+                    if(mediaPlayer!=null)
+                    {
+                        if(!mediaPlayer.isPlaying())
+                        {
+                            mediaPlayer.start();
+                            play_btn.setImageResource(R.drawable.pause_icon);
+                            musicCompleted();
+                        }
+                    }
+                }
+                else if(state==TelephonyManager.CALL_STATE_OFFHOOK)
+                {
+                    if(mediaPlayer!=null)
+                    {
+                        if(mediaPlayer.isPlaying())
+                        {
+                            mediaPlayer.pause();
+                            play_btn.setImageResource(R.drawable.play_icon);
+                        }
+                    }
+                }
+                super.onCallStateChanged(state, phoneNumber);
+            }
+        };
+
+        TelephonyManager mgr=(TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+
+        if(mgr!=null)
+        {
+            mgr.listen(phoneStateListener,PhoneStateListener.LISTEN_NONE);
+        }
+
     }
 
     public void changePrefValue(int value) {
@@ -221,19 +330,39 @@ public class HomeActivity extends AppCompatActivity {
 
                 if (currentPosition == music.size() - 1) {
                     currentPosition = 0;
+                    changePrefValue(currentPosition);
                 } else {
                     currentPosition += 1;
+                    changePrefValue(currentPosition);
                 }
                 mediaPlayer.reset();
                 mediaPlayer.release();
                 mediaPlayer = null;
+//                seekBar.setProgress(0);
                 mediaPlayer = MediaPlayer.create(HomeActivity.this, music.get(currentPosition));
                 mediaPlayer.start();
                 play_btn.setImageResource(R.drawable.pause_icon);
 
+
+
             }
         });
     }
+
+//    public void gotoSeek()
+//    {
+//        new Handler().postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                int currentPos=mediaPlayer.getCurrentPosition()/1000;
+//                int duration=mediaPlayer.getDuration()/1000;
+//                seekBar.setMax(duration);
+//               seekBar.setProgress(currentPos);
+//            }
+//        },1000);
+//    }
+
+
 
 //    @Override
 //    protected void onStart() {
